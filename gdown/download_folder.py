@@ -176,13 +176,15 @@ def _download_and_parse_google_drive_link(
         raise FolderContentsMaximumLimitError(message)
     return return_code, gdrive_file
 
+def sanitize_filename(fname):
+    return re.sub('[\n\r\t\xa0\u202a\u202c\u202f*?]', '', re.sub('[\\/|<>:"]', '_', fname)).strip('- ')
 
 def _get_directory_structure(gdrive_file, previous_path):
     """Converts a Google Drive folder structure into a local directory list."""
 
     directory_structure = []
     for file in gdrive_file.children:
-        file.name = file.name.replace(osp.sep, "_")
+        file.name = sanitize_filename(file.name)
         if file.is_folder():
             directory_structure.append((None, osp.join(previous_path, file.name)))
             for i in _get_directory_structure(file, osp.join(previous_path, file.name)):
@@ -295,8 +297,6 @@ def download_folder(
 
     files = []
     for id, path in directory_structure:
-        path_parts = os.path.normpath(path).split(os.sep)
-        path = os.sep.join(re.sub('[\n\r\t\xa0\u202a\u202c\u202f*?]', '', re.sub('[\\/|<>:"]', '-', part)).strip('- ') for part in path_parts)
         local_path = osp.join(root_dir, path)
 
         if id is None:  # folder
@@ -309,17 +309,23 @@ def download_folder(
                 GoogleDriveFileToDownload(id=id, path=path, local_path=local_path)
             )
         else:
-            local_path = download(
-                url="https://drive.google.com/uc?id=" + id,
-                output=local_path,
-                quiet=quiet,
-                proxy=proxy,
-                speed=speed,
-                use_cookies=use_cookies,
-                verify=verify,
-                fuzzy=True,  # doesn't seem logical but unfortunately necessary since docs files were not separated in folder parsing, could be fixed tho
-            )
-            if local_path is None:
+            err = None
+            try:
+                local_path = download(
+                    url="https://drive.google.com/uc?id=" + id,
+                    output=local_path,
+                    quiet=quiet,
+                    proxy=proxy,
+                    speed=speed,
+                    use_cookies=use_cookies,
+                    verify=verify,
+                    fuzzy=True,  # doesn't seem logical but unfortunately necessary since docs files were not separated in folder parsing, could be fixed tho
+                )
+            except Exception as e:
+                err = e
+            if err:
+                print("Failed to download file to", local_path, "from folder", url, type(err))
+            if local_path is None or err:
                 if not quiet:
                     print("Download ended unsuccessfully", file=sys.stderr)
                 return None
