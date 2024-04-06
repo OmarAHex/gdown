@@ -34,7 +34,6 @@ class _GoogleDriveFile(object):
 
 def _parse_google_drive_file(url, content):
     """Extracts information about the current page file and its children."""
-    breakpoint()
 
     folder_soup = bs4.BeautifulSoup(content, features="html.parser")
 
@@ -317,6 +316,7 @@ def download_folder(
                 speed=speed,
                 use_cookies=use_cookies,
                 verify=verify,
+                fuzzy=True,  # doesn't seem logical but unfortunately necessary since docs files were not separated in folder parsing, could be fixed tho
             )
             if local_path is None:
                 if not quiet:
