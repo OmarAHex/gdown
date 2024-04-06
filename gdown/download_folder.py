@@ -34,6 +34,7 @@ class _GoogleDriveFile(object):
 
 def _parse_google_drive_file(url, content):
     """Extracts information about the current page file and its children."""
+    breakpoint()
 
     folder_soup = bs4.BeautifulSoup(content, features="html.parser")
 
