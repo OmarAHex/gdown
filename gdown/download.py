@@ -97,7 +97,6 @@ def _get_session(proxy, use_cookies, user_agent, return_cookies_file=False):
     else:
         return sess
 
-
 def download(
     url=None,
     output=None,
@@ -157,6 +156,10 @@ def download(
     output: str
         Output filename.
     """
+    ### DEBUG
+    print(url) # to see how a docs file in a gdrive folder is passed by download_folder.py
+
+    
     if not (id is None) ^ (url is None):
         raise ValueError("Either url or id has to be specified")
     if id is not None:
@@ -277,7 +280,9 @@ def download(
         if not osp.exists(output):
             os.makedirs(output)
         output = osp.join(output, filename_from_url)
-
+    output_folder, output_filename = osp.split(output)
+    output_filename = re.sub('[\n\r\t\xa0\u202a\u202c\u202f*?]', '', re.sub('[\\/|<>:"]', '-', output_filename)).strip('- ')
+    output = osp.join(output_folder, output_filename)
     if output_is_path:
         existing_tmp_files = []
         for file in os.listdir(osp.dirname(output) or "."):
