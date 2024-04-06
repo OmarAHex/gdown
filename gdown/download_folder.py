@@ -295,7 +295,8 @@ def download_folder(
 
     files = []
     for id, path in directory_structure:
-        path = re.sub('[\n\r\t\xa0\u202a\u202c\u202f*?]', '', re.sub('[\\/|<>:"]', '-', path)).strip('- ')
+        path_parts = os.path.normpath(path).split(os.sep)
+        path = os.sep.join(re.sub('[\n\r\t\xa0\u202a\u202c\u202f*?]', '', re.sub('[\\/|<>:"]', '-', part)).strip('- ') for part in path_parts)
         local_path = osp.join(root_dir, path)
 
         if id is None:  # folder
