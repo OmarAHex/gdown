@@ -156,8 +156,6 @@ def download(
     output: str
         Output filename.
     """
-    ### DEBUG
-    print(url) # to see how a docs file in a gdrive folder is passed by download_folder.py
 
     
     if not (id is None) ^ (url is None):
