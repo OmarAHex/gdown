@@ -197,30 +197,35 @@ def download(
             continue
 
         if res.headers["Content-Type"].startswith("text/html"):
+            # The following checks for docs.google.com formats, here the format is set because google drive folders don't show docs files extensions in their names
+            
             if '/document/' in res.url:
+                format = "docx" if format is None else format
                 url = (
                     "https://docs.google.com/document/d/{id}/export"
                     "?format={format}".format(
                         id=gdrive_file_id,
-                        format="docx" if format is None else format,
+                        format=format,
                     )
                 )
                 continue
             elif '/spreadsheets/' in res.url:
+                format = "xlsx" if format is None else format
                 url = (
                     "https://docs.google.com/spreadsheets/d/{id}/export"
                     "?format={format}".format(
                         id=gdrive_file_id,
-                        format="xlsx" if format is None else format,
+                        format=format,
                     )
                 )
                 continue
             elif '/presentation/' in res.url:
+                format = "pptx" if format is None else format
                 url = (
                     "https://docs.google.com/presentation/d/{id}/export"
                     "?format={format}".format(
                         id=gdrive_file_id,
-                        format="pptx" if format is None else format,
+                        format=format,
                     )
                 )
                 continue
@@ -229,11 +234,12 @@ def download(
             and res.headers["Content-Disposition"].endswith("pptx")
             and format not in {None, "pptx"}
         ):
+            format = "pptx" if format is None else format
             url = (
                 "https://docs.google.com/presentation/d/{id}/export"
                 "?format={format}".format(
                     id=gdrive_file_id,
-                    format="pptx" if format is None else format,
+                    format=format,
                 )
             )
             continue
@@ -279,6 +285,8 @@ def download(
         output = osp.join(output, filename_from_url)
     output_folder, output_filename = osp.split(output)
     output_filename = re.sub('[\n\r\t\xa0\u202a\u202c\u202f*?]', '', re.sub('[\\/|<>:"]', '-', output_filename)).strip('- ')
+    if format in ['docx', 'xlsx', 'pptx'] and not output_filename.endswith(format):
+        output_filename += f'.{format}'
     output = osp.join(output_folder, output_filename)
     if output_is_path:
         existing_tmp_files = []
